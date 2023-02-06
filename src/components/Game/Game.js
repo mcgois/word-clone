@@ -1,33 +1,32 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { NUM_OF_GUESSES_ALLOWED } from "../../constants";
 
 import { WORDS } from "../../data";
 import { sample } from "../../utils";
 import GuessList from "./GuessList";
+import ResultPanel from "./ResultPanel";
 
-// Pick a random word on every pageload.
 const answer = sample(WORDS);
-// To make debugging easier, we'll log the solution in the console.
 console.info({ answer });
 
 function Game() {
   const [guess, setGuess] = useState("");
   const [guessList, setGuessList] = useState([]);
+  const [resultStatus, setResultStatus] = useState("playing");
 
-  const result = checkResult();
-
-  function checkResult() {
+  useEffect(() => {
     if (
       guessList.length >= NUM_OF_GUESSES_ALLOWED &&
-      guessList.filter((guess) => guess.guess === answer).length === 0
+      !guessList.includes(answer)
     ) {
-      return false;
+      setResultStatus("lost");
+      return;
     }
-    if (guessList.filter((guess) => guess.guess === answer).length > 0) {
-      return true;
+
+    if (guessList.includes(answer)) {
+      setResultStatus("won");
     }
-    return undefined;
-  }
+  }, [guessList, setResultStatus]);
 
   function handleSubmit(event) {
     event.preventDefault();
@@ -40,11 +39,7 @@ function Game() {
     setGuess("");
   }
 
-  function addGuessToList(g) {
-    const newGuess = {
-      id: crypto.randomUUID(),
-      guess: g,
-    };
+  function addGuessToList(newGuess) {
     setGuessList([...guessList, newGuess]);
   }
 
@@ -62,24 +57,14 @@ function Game() {
           }}
           maxLength={5}
           minLength={5}
-          disabled={result === false}
+          disabled={resultStatus === "lost"}
         />
       </form>
-      {result === true && (
-        <div className="happy banner">
-          <p>
-            <strong>Congratulations!</strong> Got it in
-            <strong> {guessList.length} guesses</strong>.
-          </p>
-        </div>
-      )}
-      {result === false && (
-        <div className="sad banner">
-          <p>
-            Sorry, the correct answer is <strong>{answer}</strong>.
-          </p>
-        </div>
-      )}
+      <ResultPanel
+        answer={answer}
+        tries={guessList.length}
+        result={resultStatus}
+      />
     </>
   );
 }

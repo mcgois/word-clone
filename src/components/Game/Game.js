@@ -34,7 +34,7 @@ function Game() {
 
   return (
     <>
-      <GuessList guessList={guessList} />
+      <GuessList guessList={guessList} answer={answer} />
       <form className="guess-input-wrapper" onSubmit={handleSubmit}>
         <label htmlFor="guess-input">Enter guess:</label>
         <input
